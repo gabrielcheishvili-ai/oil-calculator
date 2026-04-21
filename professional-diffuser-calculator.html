@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор расхода аэрозоля для аромадиффузоров</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .constants {
+            background: #ecf0f1;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            font-size: 13px;
+        }
+
+        .constants-title {
+            color: #34495e;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .constant-item {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .result-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .result-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-value {
+            color: white;
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .result-unit {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            margin-top: 8px;
+        }
+
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .result-value {
+                font-size: 36px;
+            }
+
+            .constants {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Калькулятор аромадиффузора</h1>
+        <p class="subtitle">Расчет ресурса аэрозольного баллона</p>
+
+        <div class="constants">
+            <div class="constants-title">⚙️ Технические параметры</div>
+            <div class="constant-item">• Масса баллона: <strong>160 грамм</strong></div>
+            <div class="constant-item">• Расход на распыление: <strong>0.05 грамм</strong></div>
+        </div>
+
+        <form id="calculatorForm">
+            <div class="form-group">
+                <label for="workDays">Рабочих дней в неделю</label>
+                <input 
+                    type="number" 
+                    id="workDays" 
+                    min="1" 
+                    max="7" 
+                    value="5" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="hoursPerDay">Часов работы в день</label>
+                <input 
+                    type="number" 
+                    id="hoursPerDay" 
+                    min="1" 
+                    max="24" 
+                    value="8" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="sprayInterval">Интервал распыления (минуты)</label>
+                <input 
+                    type="number" 
+                    id="sprayInterval" 
+                    min="1" 
+                    max="1440" 
+                    value="10" 
+                    required
+                >
+            </div>
+        </form>
+
+        <div class="result-container">
+            <div class="result-label">Ресурс баллона</div>
+            <div class="result-value" id="result">0</div>
+            <div class="result-unit">календарных дней</div>
+        </div>
+
+        <div class="info-box">
+            💡 <strong>Подсказка:</strong> Измените значения в полях выше, чтобы увидеть автоматический расчет ресурса баллона в календарных днях.
+        </div>
+    </div>
+
+    <script>
+        // Константы
+        const BALLOON_MASS = 160; // граммы
+        const SPRAY_CONSUMPTION = 0.05; // граммы на распыление
+
+        // Элементы формы
+        const workDaysInput = document.getElementById('workDays');
+        const hoursPerDayInput = document.getElementById('hoursPerDay');
+        const sprayIntervalInput = document.getElementById('sprayInterval');
+        const resultElement = document.getElementById('result');
+
+        // Функция расчета
+        function calculate() {
+            const workDays = parseFloat(workDaysInput.value);
+            const hoursPerDay = parseFloat(hoursPerDayInput.value);
+            const sprayInterval = parseFloat(sprayIntervalInput.value);
+
+            // Шаг 1: Вычислить количество минут работы в день
+            const minutesPerDay = hoursPerDay * 60;
+
+            // Шаг 2: Вычислить количество распылений в день
+            const spraysPerDay = minutesPerDay / sprayInterval;
+
+            // Шаг 3: Вычислить дневной расход в граммах
+            const dailyConsumption = spraysPerDay * SPRAY_CONSUMPTION;
+
+            // Шаг 4: Вычислить ресурс в рабочих днях
+            const workDaysResource = BALLOON_MASS / dailyConsumption;
+
+            // Шаг 5: Вычислить итоговый ресурс в календарных днях
+            const calendarDaysResource = Math.round((workDaysResource / workDays) * 7);
+
+            // Обновить результат
+            resultElement.textContent = calendarDaysResource;
+        }
+
+        // Добавить обработчики событий
+        workDaysInput.addEventListener('input', calculate);
+        hoursPerDayInput.addEventListener('input', calculate);
+        sprayIntervalInput.addEventListener('input', calculate);
+
+        // Начальный расчет
+        calculate();
+    </script>
+</body>
+</html>
