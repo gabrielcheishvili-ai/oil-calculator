@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оценка качества звонков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .step {
+            margin-bottom: 30px;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .step.active {
+            opacity: 1;
+        }
+
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+        }
+
+        .step-title::before {
+            content: '';
+            width: 24px;
+            height: 24px;
+            background: #667eea;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 14px;
+            line-height: 24px;
+        }
+
+        .step:nth-child(1) .step-title::before { content: '1'; }
+        .step:nth-child(2) .step-title::before { content: '2'; }
+        .step:nth-child(3) .step-title::before { content: '3'; }
+        .step:nth-child(4) .step-title::before { content: '4'; }
+        .step:nth-child(5) .step-title::before { content: '5'; }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .criteria-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .criterion {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+
+        .criterion:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .criterion-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .criterion-description {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .criterion-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-criterion {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .btn-criterion.yes {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        .btn-criterion.yes.active {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-criterion.no {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .btn-criterion.no.active {
+            background: #ef4444;
+            color: white;
+        }
+
+        .results-section {
+            background: linear-gradient(135deg, #f5f7ff 0%, #e8ebff 100%);
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .score-display {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .score-percentage {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .score-text {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background: #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .results-table th {
+            background: #e8ebff;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .results-table tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-info {
+            background: #e0f2fe;
+            color: #0369a1;
+            border-left: 4px solid #0284c7;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .summary-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: #666;
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📞 Оценка качества звонков</h1>
+            <p>Пробная версия - Форма для анализа и экспорта в Google Sheets</p>
+        </div>
+
+        <div class="content">
+            <div id="alertContainer"></div>
+
+            <!-- STEP 1: SELECT FORM TYPE -->
+            <div class="step active" id="step1">
+                <div class="step-title">Выберите тип оценки</div>
+                <div class="form-group">
+                    <select id="formType" onchange="selectFormType()">
+                        <option value="">-- Выберите тип оценки --</option>
+                        <option value="call">Оценка звонка</option>
+                        <option value="sales">Оценка продаж</option>
+                        <option value="support">Оценка поддержки</option>
+                        <option value="custom">Пользовательская форма</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- STEP 2: SELECT MANAGER -->
+            <div class="step" id="step2">
+                <div class="step-title">Выберите менеджера</div>
+                <div class="form-group">
+                    <label>Менеджер *</label>
+                    <select id="manager" onchange="updateStep()">
+                        <option value="">-- Выберите менеджера --</option>
+                        <option value="Иван Петров">Иван Петров</option>
+                        <option value="Мария Сидорова">Мария Сидорова</option>
+                        <option value="Алексей Иванов">Алексей Иванов</option>
+                        <option value="Елена Федорова">Елена Федорова</option>
+                        <option value="Другой">Другой (указать в комментариях)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- STEP 3: CLIENT INFO -->
+            <div class="step" id="step3">
+                <div class="step-title">Информация о клиенте</div>
+                <div class="form-group">
+                    <label>Номер телефона клиента *</label>
+                    <input type="tel" id="clientPhone" placeholder="+7 (XXX) XXX-XX-XX" onchange="updateStep()">
+                </div>
+                <div class="form-group">
+                    <label>Дата и время звонка *</label>
+                    <input type="datetime-local" id="callDate" onchange="updateStep()">
+                </div>
+                <div class="form-group">
+                    <label>Комментарии (опционально)</label>
+                    <textarea id="comments" placeholder="Добавьте любые заметки о звонке..."></textarea>
+                </div>
+            </div>
+
+            <!-- STEP 4: CRITERIA ASSESSMENT -->
+            <div class="step" id="step4">
+                <div class="step-title">Оценка по критериям</div>
+                <div id="criteriaContainer" class="criteria-container"></div>
+            </div>
+
+            <!-- STEP 5: RESULTS -->
+            <div class="step" id="step5">
+                <div class="step-title">Результаты оценки</div>
+                <div class="results-section">
+                    <div class="score-display">
+                        <div class="score-percentage" id="scorePercentage">0%</div>
+                        <div class="score-text">Общий результат</div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <table class="results-table" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Критерий</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody"></tbody>
+                    </table>
+                    <div class="summary-box">
+                        <div class="summary-row">
+                            <span class="summary-label">Тип оценки:</span>
+                            <span class="summary-value" id="summaryFormType">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Менеджер:</span>
+                            <span class="summary-value" id="summaryManager">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Телефон клиента:</span>
+                            <span class="summary-value" id="summaryPhone">-</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Верно выполнено:</span>
+                            <span class="summary-value" id="summaryCorrect">0/0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="exportToGoogleSheets()">📊 Экспортировать в Google Sheets</button>
+                    <button class="btn btn-secondary" onclick="copyToClipboard()">📋 Скопировать в буфер обмена</button>
+                </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="btn-group" style="margin-top: 30px;">
+                <button class="btn btn-secondary" onclick="previousStep()" id="btnPrevious">← Назад</button>
+                <button class="btn btn-primary" onclick="nextStep()" id="btnNext">Далее →</button>
+                <button class="btn btn-secondary" onclick="resetForm()" id="btnReset">🔄 Сбросить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const formTypes = {
+            call: {
+                name: 'Оценка звонка',
+                criteria: [
+                    { id: 'greeting', title: 'Приветствие', description: 'Менеджер вежливо приветствовал клиента в первые 5 секунд' },
+                    { id: 'identification', title: 'Идентификация', description: 'Менеджер представился и назвал компанию' },
+                    { id: 'listening', title: 'Активное слушание', description: 'Менеджер внимательно выслушал проблему клиента' },
+                    { id: 'solution', title: 'Предложение решения', description: 'Менеджер предложил конкретное решение' },
+                    { id: 'closing', title: 'Корректное завершение', description: 'Звонок завершен профессионально с повтором информации' },
+                    { id: 'followup', title: 'План развития', description: 'Обговорен план дальнейших действий' }
+                ]
+            },
+            sales: {
+                name: 'Оценка продаж',
+                criteria: [
+                    { id: 'needsAnalysis', title: 'Анализ потребностей', description: 'Менеджер задал вопросы для понимания потребностей' },
+                    { id: 'productKnowledge', title: 'Знание продукта', description: 'Менеджер продемонстрировал знание продукта' },
+                    { id: 'valueProposition', title: 'Ценовое предложение', description: 'Четко объяснена ценность и преимущества' },
+                    { id: 'objectionHandling', title: 'Возражения', description: 'Менеджер успешно ответил на возражения' },
+                    { id: 'closeAttempt', title: 'Попытка закрытия', description: 'Сделана попытка закрыть сделку' },
+                    { id: 'nextSteps', title: 'Следующие шаги', description: 'Четко определены следующие шаги' }
+                ]
+            },
+            support: {
+                name: 'Оценка поддержки',
+                criteria: [
+                    { id: 'empathy', title: 'Сочувствие', description: 'Менеджер выразил понимание проблемы клиента' },
+                    { id: 'troubleshooting', title: 'Диагностика', description: 'Логично проведена диагностика проблемы' },
+                    { id: 'solutions', title: 'Решение', description: 'Предложено решение, которое работает' },
+                    { id: 'clarity', title: 'Ясность инструкций', description: 'Инструкции были понятны и логичны' },
+                    { id: 'verification', title: 'Проверка результата', description: 'Проверено, что проблема решена' },
+                    { id: 'satisfaction', title: 'Удовлетворение', description: 'Клиент остался доволен результатом' }
+                ]
+            },
+            custom: {
+                name: 'Пользовательская форма',
+                criteria: [
+                    { id: 'custom1', title: 'Критерий 1', description: 'Первый пользовательский критерий' },
+                    { id: 'custom2', title: 'Критерий 2', description: 'Второй пользовательский критерий' },
+                    { id: 'custom3', title: 'Критерий 3', description: 'Третий пользовательский критерий' },
+                    { id: 'custom4', title: 'Критерий 4', description: 'Четвертый пользовательский критерий' },
+                    { id: 'custom5', title: 'Критерий 5', description: 'Пятый пользовательский критерий' },
+                    { id: 'custom6', title: 'Критерий 6', description: 'Шестой пользовательский критерий' }
+                ]
+            }
+        };
+
+        let currentStep = 0;
+        const steps = ['step1', 'step2', 'step3', 'step4', 'step5'];
+        let assessmentData = {};
+
+        function selectFormType() {
+            const formType = document.getElementById('formType').value;
+            if (formType) {
+                assessmentData.formType = formType;
+                assessmentData.formName = formTypes[formType].name;
+                renderCriteria();
+                nextStep();
+            }
+        }
+
+        function renderCriteria() {
+            const formType = assessmentData.formType;
+            const criteria = formTypes[formType].criteria;
+            const container = document.getElementById('criteriaContainer');
+            
+            container.innerHTML = criteria.map(criterion => `
+                <div class="criterion" data-criterion-id="${criterion.id}">
+                    <div class="criterion-title">${criterion.title}</div>
+                    <div class="criterion-description">${criterion.description}</div>
+                    <div class="criterion-buttons">
+                        <button class="btn-criterion yes" onclick="setCriterion('${criterion.id}', 1)">✓ Да (1)</button>
+                        <button class="btn-criterion no" onclick="setCriterion('${criterion.id}', 0)">✗ Нет (0)</button>
+                    </div>
+                </div>
+            `).join('');
+
+            assessmentData.criteria = {};
+            criteria.forEach(c => {
+                assessmentData.criteria[c.id] = null;
+            });
+        }
+
+        function setCriterion(criterionId, value) {
+            assessmentData.criteria[criterionId] = value;
+            
+            const element = document.querySelector(`[data-criterion-id="${criterionId}"]`);
+            element.querySelectorAll('.btn-criterion').forEach(btn => btn.classList.remove('active'));
+            
+            if (value === 1) {
+                element.querySelector('.btn-criterion.yes').classList.add('active');
+            } else {
+                element.querySelector('.btn-criterion.no').classList.add('active');
+            }
+
+            updateResults();
+        }
+
+        function updateStep() {
+            if (currentStep === 1) {
+                if (!document.getElementById('manager').value) return;
+                assessmentData.manager = document.getElementById('manager').value;
+            }
+            if (currentStep === 2) {
+                const phone = document.getElementById('clientPhone').value;
+                const date = document.getElementById('callDate').value;
+                if (!phone || !date) return;
+                assessmentData.clientPhone = phone;
+                assessmentData.callDate = date;
+                assessmentData.comments = document.getElementById('comments').value;
+            }
+        }
+
+        function updateResults() {
+            const criteria = assessmentData.criteria || {};
+            const values = Object.values(criteria).filter(v => v !== null);
+            const correct = values.filter(v => v === 1).length;
+            const total = Object.keys(criteria).length;
+            const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+            document.getElementById('scorePercentage').textContent = percentage + '%';
+            document.getElementById('progressBar').style.width = percentage + '%';
+            
+            const tableBody = document.getElementById('resultsTableBody');
+            tableBody.innerHTML = Object.entries(criteria).map(([id, value]) => {
+                const criterion = formTypes[assessmentData.formType].criteria.find(c => c.id === id);
+                return `
+                    <tr>
+                        <td>${criterion.title}</td>
+                        <td>${value === 1 ? '✓ Да' : value === 0 ? '✗ Нет' : '—'}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('summaryFormType').textContent = assessmentData.formName || '-';
+            document.getElementById('summaryManager').textContent = assessmentData.manager || '-';
+            document.getElementById('summaryPhone').textContent = assessmentData.clientPhone || '-';
+            document.getElementById('summaryCorrect').textContent = `${correct}/${total}`;
+        }
+
+        function nextStep() {
+            updateStep();
+            if (currentStep < steps.length - 1) {
+                document.getElementById(steps[currentStep]).classList.remove('active');
+                currentStep++;
+                document.getElementById(steps[currentStep]).classList.add('active');
+                updateButtons();
+                
+                if (currentStep === 4) {
+                    updateResults();
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 0) {
+                document.getElementById(steps[currentStep]).classList.remove('active');
+                currentStep--;
+                document.getElementById(steps[currentStep]).classList.add('active');
+                updateButtons();
+            }
+        }
+
+        function updateButtons() {
+            document.getElementById('btnPrevious').disabled = currentStep === 0;
+            document.getElementById('btnNext').textContent = currentStep === steps.length - 1 ? 'Завершить' : 'Далее →';
+            document.getElementById('btnNext').disabled = currentStep === steps.length - 1;
+            document.getElementById('btnReset').disabled = currentStep === 0;
+        }
+
+        function resetForm() {
+            currentStep = 0;
+            assessmentData = {};
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('formType').value = '';
+            document.getElementById('manager').value = '';
+            document.getElementById('clientPhone').value = '';
+            document.getElementById('callDate').value = '';
+            document.getElementById('comments').value = '';
+            document.getElementById('criteriaContainer').innerHTML = '';
+            updateButtons();
+            showAlert('Форма сброшена', 'info');
+        }
+
+        function copyToClipboard() {
+            const csv = generateCSV();
+            navigator.clipboard.writeText(csv).then(() => {
+                showAlert('✓ Данные скопированы в буфер обмена!', 'success');
+            });
+        }
+
+        function generateCSV() {
+            const criteria = Object.entries(assessmentData.criteria || {})
+                .map(([id, value]) => `${id}: ${value === 1 ? 'Да' : value === 0 ? 'Нет' : 'Не оценено'}`)
+                .join('\n');
+
+            const correct = Object.values(assessmentData.criteria || {}).filter(v => v === 1).length;
+            const total = Object.keys(assessmentData.criteria || {}).length;
+            const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+            return `Тип оценки\t${assessmentData.formName}
+Менеджер\t${assessmentData.manager}
+Телефон клиента\t${assessmentData.clientPhone}
+Дата звонка\t${assessmentData.callDate}
+Комментарии\t${assessmentData.comments}
+Результат\t${percentage}%
+Верно выполнено\t${correct}/${total}
+Дата экспорта\t${new Date().toLocaleString('ru-RU')}
+
+КРИТЕРИИ
+${criteria}`;
+        }
+
+        function exportToGoogleSheets() {
+            const csv = generateCSV();
+            console.log('Готовые данные для Google Sheets:');
+            console.log(csv);
+            
+            showAlert('✓ Данные готовы к отправке в Google Sheets! Проверьте консоль (F12) для деталей.', 'success');
+            
+            // Скопируем в буфер обмена
+            navigator.clipboard.writeText(csv);
+        }
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+            
+            setTimeout(() => alert.remove(), 4000);
+        }
+
+        // Initialize
+        updateButtons();
+    </script>
+</body>
+</html>
